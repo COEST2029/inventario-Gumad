@@ -1,0 +1,385 @@
+
+<h2 class="sr-only">App de revista de inventario — Grupo Medios Audiovisuales COEST</h2>
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+
+#app { padding: 0; min-height: 600px; }
+
+.top-bar {
+  background: #0a0a0a;
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+.top-bar-left { display: flex; align-items: center; gap: 10px; }
+.rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #e74c3c; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{ opacity:1 } 50%{ opacity:0.4 } }
+.top-bar h1 { font-size: 14px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: #fff; }
+.top-bar-subtitle { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 1px; }
+.stats-bar { display: flex; gap: 6px; }
+.stat-pill { background: rgba(255,255,255,0.08); border: 0.5px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 4px 10px; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.8); }
+.stat-pill span { color: #fff; font-weight: 600; }
+
+.controls {
+  background: var(--color-background-secondary);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+  padding: 10px 16px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.search-wrap { position: relative; flex: 1; min-width: 160px; }
+.search-wrap i { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--color-text-secondary); font-size: 15px; pointer-events: none; }
+#search { width: 100%; padding: 7px 10px 7px 30px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+select { padding: 7px 10px; font-size: 13px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); cursor: pointer; }
+.filter-btns { display: flex; gap: 4px; }
+.fbtn { padding: 6px 10px; font-size: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.fbtn.active, .fbtn:hover { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+.export-btn { padding: 7px 14px; font-size: 12px; font-weight: 500; background: #e74c3c; color: #fff; border: none; border-radius: var(--border-radius-md); cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.export-btn:hover { background: #c0392b; }
+
+.list-area { padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; max-height: 460px; overflow-y: auto; }
+
+.item-card {
+  background: var(--color-background-primary);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-md);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto;
+  gap: 10px;
+  align-items: center;
+  transition: border-color 0.15s;
+}
+.item-card:hover { border-color: var(--color-border-secondary); }
+.item-card.presente { border-left: 3px solid #27ae60; }
+.item-card.ausente { border-left: 3px solid #e74c3c; }
+.item-card.pendiente { border-left: 3px solid #f39c12; }
+
+.item-thumb {
+  width: 48px; height: 48px; border-radius: 6px;
+  background: var(--color-background-secondary);
+  border: 0.5px solid var(--color-border-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; cursor: pointer; position: relative;
+  font-size: 20px; color: var(--color-text-secondary);
+}
+.item-thumb img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+.item-thumb .cam-ico { font-size: 10px; color: var(--color-text-secondary); position: absolute; bottom: 2px; right: 3px; }
+
+.item-info { min-width: 0; }
+.item-clase { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--color-text-secondary); margin-bottom: 2px; }
+.item-nombre { font-size: 13px; font-weight: 500; color: var(--color-text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-serie { font-size: 11px; color: var(--color-text-secondary); font-family: var(--font-mono); margin-top: 1px; }
+
+.item-comment-wrap { width: 160px; }
+.item-comment-wrap textarea {
+  width: 100%; font-size: 11px; resize: none; height: 44px;
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: 6px; padding: 4px 7px;
+  background: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  line-height: 1.4;
+}
+.item-comment-wrap textarea:focus { outline: none; border-color: var(--color-border-primary); }
+
+.check-btns { display: flex; flex-direction: column; gap: 4px; }
+.chk { padding: 5px 8px; font-size: 11px; font-weight: 500; border-radius: 5px; border: 0.5px solid; cursor: pointer; background: var(--color-background-secondary); transition: all 0.12s; white-space: nowrap; }
+.chk-si { border-color: #27ae60; color: #27ae60; }
+.chk-si.active { background: #27ae60; color: #fff; }
+.chk-no { border-color: #e74c3c; color: #e74c3c; }
+.chk-no.active { background: #e74c3c; color: #fff; }
+.chk-na { border-color: #f39c12; color: #f39c12; }
+.chk-na.active { background: #f39c12; color: #fff; }
+
+.empty { text-align: center; padding: 40px; color: var(--color-text-secondary); font-size: 13px; }
+
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--color-background-primary);
+  border-radius: var(--border-radius-lg);
+  border: 0.5px solid var(--color-border-secondary);
+  padding: 20px;
+  width: 320px;
+  max-width: 95vw;
+}
+.modal h3 { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+.modal-preview { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 12px; font-size: 13px; color: var(--color-text-secondary); }
+.modal-preview img { width: 100%; height: 100%; object-fit: cover; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns button { flex: 1; padding: 8px; font-size: 13px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); cursor: pointer; background: var(--color-background-secondary); color: var(--color-text-primary); }
+.modal-btns .primary { background: #0a0a0a; color: #fff; border-color: #0a0a0a; }
+#file-input { display: none; }
+
+.pdf-notice {
+  background: #0a0a0a; color: #fff;
+  padding: 10px 16px; font-size: 12px;
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.progress-bar-wrap { height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; flex: 1; margin: 0 12px; }
+.progress-bar { height: 100%; background: #27ae60; border-radius: 2px; transition: width 0.3s; }
+</style>
+
+<div id="app">
+  <div class="top-bar">
+    <div class="top-bar-left">
+      <div class="rec-dot"></div>
+      <div>
+        <div class="top-bar h1" style="font-size:13px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;">Grupo Medios Audiovisuales · COEST</div>
+        <div class="top-bar-subtitle">Revista de Inventario — <span id="fecha-rev"></span></div>
+      </div>
+    </div>
+    <div class="stats-bar">
+      <div class="stat-pill">Total: <span id="s-total">0</span></div>
+      <div class="stat-pill" style="color:#27ae60">✓ <span id="s-pres">0</span></div>
+      <div class="stat-pill" style="color:#e74c3c">✗ <span id="s-aus">0</span></div>
+      <div class="stat-pill" style="color:#f39c12">⚠ <span id="s-pend">0</span></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="search-wrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input id="search" type="text" placeholder="Buscar por nombre, serie, marca…">
+    </div>
+    <select id="cat-filter">
+      <option value="">Todas las categorías</option>
+    </select>
+    <div class="filter-btns">
+      <button class="fbtn active" data-f="all">Todos</button>
+      <button class="fbtn" data-f="presente">Presente</button>
+      <button class="fbtn" data-f="ausente">Ausente</button>
+      <button class="fbtn" data-f="pendiente">Sin revisar</button>
+    </div>
+    <button class="export-btn" onclick="exportPDF()"><i class="ti ti-file-download" aria-hidden="true"></i> Exportar PDF</button>
+  </div>
+
+  <div class="list-area" id="list-area"></div>
+
+  <div class="pdf-notice">
+    <span style="color:rgba(255,255,255,0.6)">Progreso de revista</span>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="prog-bar" style="width:0%"></div>
+    </div>
+    <span id="prog-text" style="font-weight:500">0 / 0 revisados</span>
+  </div>
+</div>
+
+<div class="modal-bg" id="photo-modal">
+  <div class="modal">
+    <h3>Foto del elemento</h3>
+    <div class="modal-preview" id="modal-preview">Sin foto</div>
+    <input type="file" id="file-input" accept="image/*">
+    <div class="modal-btns">
+      <button onclick="closeModal()">Cancelar</button>
+      <button class="primary" onclick="document.getElementById('file-input').click()"><i class="ti ti-camera" aria-hidden="true"></i> Seleccionar foto</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ITEMS = [{"id":"NO APLICA_5333067808","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5333067808","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068102","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068102","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068103","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068103","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"DUARTE MONTENEGRO NICOLAS","costo":"176.357"},{"id":"NO APLICA_5353068104","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068104","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068108","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068108","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068109","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068109","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"176.357"},{"id":"NO APLICA_5353068110","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068110","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068111","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068111","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"NO APLICA_5353068112","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068112","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"176.357"},{"id":"NO APLICA_5353068113","clase":"AUDIFONOS","marca":"NO REPORTADA","modelo":"HD300PRO","serie":"5353068113","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"176.357"},{"id":"3981726_C3131128893475","clase":"CAMARA DE VIDEO","marca":"GOPRO","modelo":"HERO 4 SILVER","serie":"C3131128893475","nroInventario":"3981726","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.863.000"},{"id":"4563908_C3351324755281","clase":"CAMARA DE VIDEO","marca":"GOPRO","modelo":"HERO MAX","serie":"C3351324755281","nroInventario":"4563908","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.444.650"},{"id":"4563904_A2TRA0055","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AG-UX90","serie":"A2TRA0055","nroInventario":"4563904","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"16.898.000"},{"id":"4563905_B1TKA0023","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AG-UX90","serie":"B1TKA0023","nroInventario":"4563905","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"16.898.000"},{"id":"4571038_G2TRA0059","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AG-UX90","serie":"G2TRA0059","nroInventario":"4571038","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.917.000"},{"id":"4032264_D4TCA0094","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AI-PX270","serie":"D4TCA0094","nroInventario":"4032264","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.123.388,5"},{"id":"4032263_L6TCA0086","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AI-PX270","serie":"L6TCA0086","nroInventario":"4032263","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.123.388,5"},{"id":"4032265_H6TCA0047","clase":"CAMARA DE VIDEO","marca":"PANASONIC","modelo":"AJPX270AN","serie":"H6TCA0047","nroInventario":"4032265","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.123.388,5"},{"id":"4494393_4970398","clase":"CAMARA DE VIDEO","marca":"SONY","modelo":"FX3","serie":"4970398","nroInventario":"4494393","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"26.460.708,23"},{"id":"4851280_7685094","clase":"CAMARA DE VIDEO","marca":"SONY","modelo":"ILCE-7M4","serie":"7685094","nroInventario":"4851280","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"139.999.999"},{"id":"4851279_1000972","clase":"CAMARA DE VIDEO","marca":"SONY","modelo":"PXW-FX9V","serie":"1000972","nroInventario":"4851279","estado":"En Servicio","funcionario":"AVILA SANABRIA EDUAR YESID","costo":"379.999.999"},{"id":"4352835_C3331324813105","clase":"CAMARA DIGITAL","marca":"GOPRO","modelo":"HERO 8","serie":"C3331324813105","nroInventario":"4352835","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.517.703,02"},{"id":"4030931_58021001688","clase":"CAMARA FOTOGRAFICA","marca":"CANON","modelo":"EOS 5D","serie":"58021001688","nroInventario":"4030931","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.271.600"},{"id":"4030927_152024000907","clase":"CAMARA FOTOGRAFICA","marca":"CANON","modelo":"EOS 5D","serie":"152024000907","nroInventario":"4030927","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.271.600"},{"id":"4030929_152024000908","clase":"CAMARA FOTOGRAFICA","marca":"CANON","modelo":"EOS 5D","serie":"152024000908","nroInventario":"4030929","estado":"En Servicio","funcionario":"PLAZAS BENITEZ EDWAR ALONSO","costo":"21.271.600"},{"id":"4030928_1520224000874","clase":"CAMARA FOTOGRAFICA","marca":"CANON","modelo":"EOS 5D","serie":"1520224000874","nroInventario":"4030928","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"21.271.600"},{"id":"4571035_522038003208","clase":"CAMARA FOTOGRAFICA","marca":"CANON","modelo":"EOS 5D MARK IV","serie":"522038003208","nroInventario":"4571035","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"25.190.500"},{"id":"4279981_9PKNRZ2","clase":"COMPUTADOR","marca":"DELL","modelo":"7470 AIO","serie":"9PKNRZ2","nroInventario":"4279981","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.200.000"},{"id":"4279983_C6JVRZ2","clase":"COMPUTADOR","marca":"DELL","modelo":"7470 AIO","serie":"C6JVRZ2","nroInventario":"4279983","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.200.000"},{"id":"4050063_GLPPMD2","clase":"COMPUTADOR","marca":"DELL","modelo":"WORKSTATION TIPO 3","serie":"GLPPMD2","nroInventario":"4050063","estado":"Fuera de Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"29.100.000"},{"id":"4050065_GLPRMD2","clase":"COMPUTADOR","marca":"DELL","modelo":"WORKSTATION TIPO 3","serie":"GLPRMD2","nroInventario":"4050065","estado":"Fuera de Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"29.100.000"},{"id":"4516057_MXL1492PYF","clase":"COMPUTADOR","marca":"HP","modelo":"ELITEONE 800 G6","serie":"MXL1492PYF","nroInventario":"4516057","estado":"En Servicio","funcionario":"VALERO SIERRA JAIRO","costo":"3.042.438,42"},{"id":"4194889_MJ07T68B","clase":"COMPUTADOR","marca":"LENOVO","modelo":"THINKCENTRE M920Z","serie":"MJ07T68B","nroInventario":"4194889","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.558.246,66"},{"id":"4194895_MJ07T521","clase":"COMPUTADOR","marca":"LENOVO","modelo":"THINKCENTRE M920Z","serie":"MJ07T521","nroInventario":"4194895","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"2.558.246,66"},{"id":"3782261_C02N20UF8J5","clase":"COMPUTADOR","marca":"MAC","modelo":"A1347","serie":"C02N20UF8J5","nroInventario":"3782261","estado":"Pendiente para Baja","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"4.799.000"},{"id":"3777138_D25NM0YHF8JC","clase":"COMPUTADOR","marca":"MAC","modelo":"A1347","serie":"D25NM0YHF8JC","nroInventario":"3777138","estado":"Pendiente para Baja","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"7.500.000"},{"id":"3991395_H00420N0GWR","clase":"COMPUTADOR","marca":"MAC","modelo":"PRO A1289 (V. A)","serie":"H00420N0GWR","nroInventario":"3991395","estado":"Fuera de Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"30.640.844,34"},{"id":"3864816_POLT227411978","clase":"COMPUTADOR","marca":"PC SMART","modelo":"ALL-IN-ONE","serie":"POLT227411978","nroInventario":"3864816","estado":"Fuera de Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.525.110,08"},{"id":"3864820_POLT227411982","clase":"COMPUTADOR","marca":"PC SMART","modelo":"ALL-IN-ONE","serie":"POLT227411982","nroInventario":"3864820","estado":"Pendiente para Baja","funcionario":"VALERO SIERRA JAIRO","costo":"1.525.110,08"},{"id":"4563894_SPF44PA4S","clase":"COMPUTADOR PORTATIL","marca":"LENOVO","modelo":"THINKPAD P16","serie":"SPF44PA4S","nroInventario":"4563894","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"27.185.550"},{"id":"1464878_1464878","clase":"CONSOLA DE SONIDO","marca":"ZENMUSE","modelo":"AM220P","serie":"1464878","nroInventario":"1464878","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"2.960.552,59"},{"id":"NO APLICA_1N3921730380","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD330-4T","serie":"1N3921730380","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730375","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710P","serie":"1N3921730375","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730373","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710PRO-4TB","serie":"1N3921730373","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730376","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710PRO-4TB","serie":"1N3921730376","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730377","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710PRO-4TB","serie":"1N3921730377","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730378","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710PRO-4TB","serie":"1N3921730378","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_1N3921730379","clase":"DISCO DURO EXTERNO","marca":"ADATA","modelo":"HD710PRO-4TB","serie":"1N3921730379","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.590.698"},{"id":"NO APLICA_NT2803KF","clase":"DISCO DURO EXTERNO","marca":"ALCIE","modelo":"LRDMU03","serie":"NT2803KF","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.819.111"},{"id":"NO APLICA_NT2803KG","clase":"DISCO DURO EXTERNO","marca":"ALCIE","modelo":"LRDMU03","serie":"NT2803KG","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.819.111"},{"id":"NO APLICA_NT2803M5","clase":"DISCO DURO EXTERNO","marca":"ALCIE","modelo":"LRDMU03","serie":"NT2803M5","nroInventario":"NO APLICA","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.819.111"},{"id":"2420009_LN1A0839036518","clase":"DVD","marca":"PHILIPHS","modelo":"DVDR3576H","serie":"LN1A0839036518","nroInventario":"2420009","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.422.972"},{"id":"4592149_20478500BPMJ0330","clase":"EQUIPO DE GRABACION","marca":"MACKIE","modelo":"BIG KNOB BIG KNOB STUDIO+","serie":"20478500BPMJ0330","nroInventario":"4592149","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.250.000"},{"id":"4778392_4778392","clase":"ESTABILIZADOR  PORTATIL","marca":"DJI","modelo":"RONIN RS4","serie":"4778392","nroInventario":"4778392","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.794.360"},{"id":"4703196_DCR1002233Q9P9I","clase":"EXTENSOR DE AUDIO","marca":"APOGEE","modelo":"DUEL 3","serie":"DCR1002233Q9P9I","nroInventario":"4703196","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"814.629,09"},{"id":"4703197_DCR10022335GKFT","clase":"EXTENSOR DE AUDIO","marca":"APOGEE","modelo":"DUEL 3","serie":"DCR10022335GKFT","nroInventario":"4703197","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"814.629,09"},{"id":"1465292_1465292","clase":"GRABADORA DE VIDEO","marca":"PANASONIC","modelo":" SA-AK340","serie":"1465292","nroInventario":"1465292","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"12.155.814,82"},{"id":"1465302_1465302","clase":"GRABADORA DE VIDEO","marca":"PANASONIC","modelo":"NO REPORTADO","serie":"1465302","nroInventario":"1465302","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"13.346.506,14"},{"id":"3024747_116028","clase":"GRABADORA DE VIDEO","marca":"SONY","modelo":"NO REPORTADO","serie":"116028","nroInventario":"3024747","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"4.713.238,95"},{"id":"1465297_1465297","clase":"GRABADORA DE VIDEO","marca":"SONY","modelo":"NO REPORTADO","serie":"1465297","nroInventario":"1465297","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"12.680.526,24"},{"id":"3991332_3991332","clase":"GRABADORA DE VIDEO","marca":"ZENMUSE","modelo":"NO REPORTADO","serie":"3991332","nroInventario":"3991332","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"31.957.536"},{"id":"3991333_3991333","clase":"GRABADORA DE VIDEO","marca":"ZENMUSE","modelo":"NO REPORTADO","serie":"3991333","nroInventario":"3991333","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"48.563.198,58"},{"id":"2894671_KHTF002099","clase":"IMPRESORA","marca":"EPSON","modelo":"PP100","serie":"KHTF002099","nroInventario":"2894671","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"11.990.000"},{"id":"4563942_21YEBY01224","clase":"INTERFAZ DE COMUNICACION","marca":"NO REPORTADA","modelo":"UR22C","serie":"21YEBY01224","nroInventario":"4563942","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.547.000"},{"id":"4563943_21YEBYO1229","clase":"INTERFAZ DE COMUNICACION","marca":"NO REPORTADA","modelo":"UR22C","serie":"21YEBYO1229","nroInventario":"4563943","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.547.000"},{"id":"4693314_05011/08425","clase":"KIT DE MICROFONOS","marca":"BOYA","modelo":"BY-WS1000  BY-BM6060","serie":"05011/08425","nroInventario":"4693314","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.061.827,41"},{"id":"4693315_06904/08429","clase":"KIT DE MICROFONOS","marca":"BOYA","modelo":"BY-WS1000  BY-BM6060","serie":"06904/08429","nroInventario":"4693315","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.061.827,41"},{"id":"4709299_1868718","clase":"LENTE FOTOGRAFICO","marca":"SONY","modelo":"FDR-AX530","serie":"1868718","nroInventario":"4709299","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"5.287.351,48"},{"id":"4709505_1869850","clase":"LENTE FOTOGRAFICO","marca":"SONY","modelo":"FDR-AX530","serie":"1869850","nroInventario":"4709505","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"5.287.351,47"},{"id":"3824949_1307200599TXQR","clase":"LIBRERIA DE BACKUP","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"1307200599TXQR","nroInventario":"3824949","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"51.100.000"},{"id":"4399595_N. INV. 4399595","clase":"LICENCIA","marca":"ADOBE","modelo":"SUITE CREATIVE CLOUD","serie":"N. INV. 4399595","nroInventario":"4399595","estado":"Pendiente para Baja","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"8.200.000"},{"id":"4399598_N. INV. 4399598","clase":"LICENCIA","marca":"ADOBE","modelo":"SUITE CREATIVE CLOUD","serie":"N. INV. 4399598","nroInventario":"4399598","estado":"Pendiente para Baja","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"8.200.000"},{"id":"4703204_LIC. MJ0LFCP0","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME & BUSINESS 2021","serie":"LIC. MJ0LFCP0","nroInventario":"4703204","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"362.057,36"},{"id":"4703205_LIC. MJ0LFCP1","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME & BUSINESS 2021","serie":"LIC. MJ0LFCP1","nroInventario":"4703205","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"362.057,36"},{"id":"4592154_LIC. SMJOJTY4C","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME AND BUSINESS 2021","serie":"LIC. SMJOJTY4C","nroInventario":"4592154","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.400.000"},{"id":"4516329_LIC.  MXL1492PYF","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC.  MXL1492PYF","nroInventario":"4516329","estado":"En Servicio","funcionario":"VALERO SIERRA JAIRO","costo":"626.812,73"},{"id":"4563825_LIC. MXL941405D","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. MXL941405D","nroInventario":"4563825","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.309.000"},{"id":"4563826_LIC. MXL941405L","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. MXL941405L","nroInventario":"4563826","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"1.309.000"},{"id":"4563900_LIC. PF44PA6A","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. PF44PA6A","nroInventario":"4563900","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.309.000"},{"id":"4563887_LIC. SMJ0JETCZ","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. SMJ0JETCZ","nroInventario":"4563887","estado":"En Servicio","funcionario":"PLAZAS BENITEZ EDWAR ALONSO","costo":"1.309.000"},{"id":"4563890_LIC. SMJ0JETD1","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. SMJ0JETD1","nroInventario":"4563890","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.309.000"},{"id":"4563898_LIC. SPF44PA4S","clase":"LICENCIA","marca":"MICROSOFT","modelo":"HOME&BUSINESS 2021 ESD","serie":"LIC. SPF44PA4S","nroInventario":"4563898","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.309.000"},{"id":"4563997_4563997","clase":"LICENCIA","marca":"NINGUNO","modelo":"SUSCRIPCIÓN SOCIAL RED GOOGLE PHOTOS","serie":"4563997","nroInventario":"4563997","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.499.400"},{"id":"4196255_LIC. MJ07T521","clase":"LICENCIA","marca":"OFFICE","modelo":"HOME AND BUSINES 2019","serie":"LIC. MJ07T521","nroInventario":"4196255","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"447.967,67"},{"id":"4196249_LIC.MJ07T68B","clase":"LICENCIA","marca":"OFFICE","modelo":"HOME AND BUSINES 2019","serie":"LIC.MJ07T68B","nroInventario":"4196249","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"447.967,67"},{"id":"3869997_LIC. POLT227411978","clase":"LICENCIA OFFICE","marca":"GOVERNMENT OLP PC SMART","modelo":"2013","serie":"LIC. POLT227411978","nroInventario":"3869997","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"377.850,73"},{"id":"3870001_LIC.POLT227411982","clase":"LICENCIA OFFICE","marca":"GOVERNMENT OLP PC SMART","modelo":"2013","serie":"LIC.POLT227411982","nroInventario":"3870001","estado":"En Servicio","funcionario":"VALERO SIERRA JAIRO","costo":"377.850,73"},{"id":"4281528_LIC.9PKNRZ2","clase":"LICENCIA OFFICE","marca":"MICROSOFT","modelo":"HOME & BUSINESS 2019 ESD","serie":"LIC.9PKNRZ2","nroInventario":"4281528","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"790.000"},{"id":"4281530_LIC.C6JVRZ2","clase":"LICENCIA OFFICE","marca":"MICROSOFT","modelo":"HOME & BUSINESS 2019 ESD","serie":"LIC.C6JVRZ2","nroInventario":"4281530","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"790.000"},{"id":"4709528_23Y1626","clase":"MEZCLADORA DE AUDIO","marca":"TASCAM","modelo":"PORTACAPTURE X6","serie":"23Y1626","nroInventario":"4709528","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.503.834,92"},{"id":"4709530_23Y1765","clase":"MEZCLADORA DE AUDIO","marca":"TASCAM","modelo":"PORTACAPTURE X6","serie":"23Y1765","nroInventario":"4709530","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.503.834,92"},{"id":"4709531_23Y1766","clase":"MEZCLADORA DE AUDIO","marca":"TASCAM","modelo":"PORTACAPTURE X6","serie":"23Y1766","nroInventario":"4709531","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.503.834,92"},{"id":"4709529_2312730","clase":"MEZCLADORA DE AUDIO","marca":"TASCAM","modelo":"PORTACAPTURE X6","serie":"2312730","nroInventario":"4709529","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.503.834,92"},{"id":"4709307_BY2012180948","clase":"MICROFONO","marca":"BOYA","modelo":"WM4 PRO K3","serie":"BY2012180948","nroInventario":"4709307","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.640.547,34"},{"id":"4709526_98592","clase":"MICROFONO","marca":"NEUMAN","modelo":"BERLIN TLM102","serie":"98592","nroInventario":"4709526","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.880.833,91"},{"id":"4709527_103579","clase":"MICROFONO","marca":"NEUMAN","modelo":"BERLIN TLM102","serie":"103579","nroInventario":"4709527","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.880.833,91"},{"id":"1465080_1465080","clase":"MICROFONO","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"1465080","nroInventario":"1465080","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"4.671.638,85"},{"id":"4571062_4571062","clase":"MICROFONO","marca":"SENNHEISER","modelo":"EW100G4","serie":"4571062","nroInventario":"4571062","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"832.000"},{"id":"4494397_FL00465454","clase":"MICROFONO INALAMBRICO","marca":"RODE","modelo":"WIRELESS GO II","serie":"FL00465454","nroInventario":"4494397","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.166.979"},{"id":"4494396_FL00465458","clase":"MICROFONO INALAMBRICO","marca":"RODE","modelo":"WIRELESS GO II","serie":"FL00465458","nroInventario":"4494396","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.166.979"},{"id":"4693345_HG0441524","clase":"MICROFONO INALAMBRICO","marca":"RODE","modelo":"WIRELESS GO II","serie":"HG0441524","nroInventario":"4693345","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.640.547,34"},{"id":"4693339_HG0441583","clase":"MICROFONO INALAMBRICO","marca":"RODE","modelo":"WIRELESS GO II","serie":"HG0441583","nroInventario":"4693339","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.640.547,34"},{"id":"4563940_FBM01374/FBM01379","clase":"MONITOR DE AUDIO","marca":"YAMAHA","modelo":"HS7","serie":"FBM01374/FBM01379","nroInventario":"4563940","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.872.250"},{"id":"4563941_FBM01376/ FBM01791","clase":"MONITOR DE AUDIO","marca":"YAMAHA","modelo":"HS7","serie":"FBM01376/ FBM01791","nroInventario":"4563941","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"6.872.250"},{"id":"1463479_1463479","clase":"PANTALLA LED","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"1463479","nroInventario":"1463479","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"238.734,77"},{"id":"4702865_21UFCJ01245","clase":"PARLANTE","marca":"YAMAHA","modelo":"HS7","serie":"21UFCJ01245","nroInventario":"4702865","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.267.200,82"},{"id":"4702866_21UFCJ01374","clase":"PARLANTE","marca":"YAMAHA","modelo":"HS7","serie":"21UFCJ01374","nroInventario":"4702866","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.267.200,82"},{"id":"4702864_21UFCJ01378","clase":"PARLANTE","marca":"YAMAHA","modelo":"HS7","serie":"21UFCJ01378","nroInventario":"4702864","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.267.200,82"},{"id":"4702867_21UFCJ01446","clase":"PARLANTE","marca":"YAMAHA","modelo":"HS7","serie":"21UFCJ01446","nroInventario":"4702867","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.267.200,82"},{"id":"4592148_UFCJ01002","clase":"PARLANTE","marca":"YAMAHA","modelo":"MONITOR DE ESTUDIO HS7","serie":"UFCJ01002","nroInventario":"4592148","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.600.000"},{"id":"4693313_11472159","clase":"PROCESADOR DE VIDEO","marca":"BLACK MAGIC","modelo":"ATEM MINI PRO","serie":"11472159","nroInventario":"4693313","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.684.346,76"},{"id":"4693312_11534455","clase":"PROCESADOR DE VIDEO","marca":"BLACK MAGIC","modelo":"ATEM MINI PRO","serie":"11534455","nroInventario":"4693312","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.684.346,76"},{"id":"3991336_L8TRB0078","clase":"RADIO GRABADORA","marca":"PANASONIC","modelo":"AJD650P","serie":"L8TRB0078","nroInventario":"3991336","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"14.277.389,96"},{"id":"1464424_1464424","clase":"RADIO GRABADORA","marca":"SONY","modelo":"EDITORA SONY 1800","serie":"1464424","nroInventario":"1464424","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"16.220.310,29"},{"id":"4571066_4571066","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"GVM GENERICO","serie":"4571066","nroInventario":"4571066","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.785.742,22"},{"id":"4563936_4563936","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"LED IKAN IKOYB","serie":"4563936","nroInventario":"4563936","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.154.300"},{"id":"4563937_4563937","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"LED IKAN IKOYB","serie":"4563937","nroInventario":"4563937","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.154.300"},{"id":"4571067_4571067","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"LUZ PARA CAMARA","serie":"4571067","nroInventario":"4571067","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"1.569.600"},{"id":"4563923_4563923","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"NEEWER NE10096532","serie":"4563923","nroInventario":"4563923","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"5.872.650"},{"id":"4563924_4563924","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"NEEWER NE10096532","serie":"4563924","nroInventario":"4563924","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"5.872.650"},{"id":"4563931_4563931","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"4563931","nroInventario":"4563931","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"559.300"},{"id":"4563932_4563932","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"4563932","nroInventario":"4563932","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"559.300"},{"id":"4563933_4563933","clase":"REFLECTOR","marca":"NO REPORTADA","modelo":"NO REPORTADO","serie":"4563933","nroInventario":"4563933","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"559.300"},{"id":"3830515_PX2Z002905","clase":"SCANNER","marca":"EPSON","modelo":"DS-7500","serie":"PX2Z002905","nroInventario":"3830515","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.262.021,87"},{"id":"4592152_Q21CB17993Z","clase":"SERVIDOR","marca":"QNAP","modelo":"QNAP TS-453D-4G-US","serie":"Q21CB17993Z","nroInventario":"4592152","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.350.000,01"},{"id":"4563945_Q219I13840S","clase":"SERVIDOR","marca":"QNAP","modelo":"QNAP TS-653D","serie":"Q219I13840S","nroInventario":"4563945","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.442.270"},{"id":"4563946_Q219L138292","clase":"SERVIDOR","marca":"QNAP","modelo":"QNAP TS-653D","serie":"Q219L138292","nroInventario":"4563946","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"4.442.270"},{"id":"4703198_Q237I03177","clase":"SERVIDOR","marca":"QNAP","modelo":"TVS-472XT-I3-4G","serie":"Q237I03177","nroInventario":"4703198","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"3.168.002,09"},{"id":"4703199_Q239I04818","clase":"SERVIDOR","marca":"QNAP","modelo":"TVS-472XT-I3-4G","serie":"Q239I04818","nroInventario":"4703199","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"3.168.002,09"},{"id":"1340739_77EF5YE4B8A1B","clase":"SWITCH","marca":"3COM","modelo":"3 48 PTOS REF- 3870","serie":"77EF5YE4B8A1B","nroInventario":"1340739","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"11.297.789"},{"id":"4709548_1023B7014282","clase":"SWITCH","marca":"HUAWEI","modelo":" S5731-S48P4X ","serie":"1023B7014282","nroInventario":"4709548","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"7.548.711,82"},{"id":"4703200_2CV00X1003023","clase":"TABLET","marca":"WACOM","modelo":"CINTIQ 16","serie":"2CV00X1003023","nroInventario":"4703200","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"7.241.147,66"},{"id":"4703201_2CV00X1003026","clase":"TABLET","marca":"WACOM","modelo":"CINTIQ 16","serie":"2CV00X1003026","nroInventario":"4703201","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"7.241.147,66"},{"id":"4563991_2BV00X1001375","clase":"TABLETA GRAFICA","marca":"WACOM","modelo":"ID002WAC71","serie":"2BV00X1001375","nroInventario":"4563991","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"6.149.920"},{"id":"4563990_2BV00X1001377","clase":"TABLETA GRAFICA","marca":"WACOM","modelo":"ID002WAC71","serie":"2BV00X1001377","nroInventario":"4563990","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.149.920"},{"id":"1333808_INM10321DYU","clase":"TELEFONO IP","marca":"CISCO","modelo":"7911","serie":"INM10321DYU","nroInventario":"1333808","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"518.314,68"},{"id":"4032266_4032266","clase":"TELEPRONTER","marca":"IKAN","modelo":"PT 3500","serie":"4032266","nroInventario":"4032266","estado":"En Servicio","funcionario":"GONZALEZ BEJARANO CARLOS ANDRES","costo":"4.500.000"},{"id":"1465332_4519340","clase":"TELEVISOR","marca":"SONY","modelo":"LCD 32 PULGADAS","serie":"4519340","nroInventario":"1465332","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"3.677.200"},{"id":"2704636_912RMYA043554","clase":"TELEVISOR","marca":"SONY","modelo":"TH42PH9UK","serie":"912RMYA043554","nroInventario":"2704636","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.994.600"},{"id":"1465418_MA71410044","clase":"TELEVISOR","marca":"SONY","modelo":"TH42PH9UK","serie":"MA71410044","nroInventario":"1465418","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.148.000"},{"id":"4709502_4709502","clase":"TRIPODE","marca":"BESTON","modelo":"BST-3110A","serie":"4709502","nroInventario":"4709502","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"66.537,99"},{"id":"4709534_4709534","clase":"TRIPODE","marca":"BESTON","modelo":"BST-3110A","serie":"4709534","nroInventario":"4709534","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"68.327,02"},{"id":"4709535_4709535","clase":"TRIPODE","marca":"BESTON","modelo":"BST-3110A","serie":"4709535","nroInventario":"4709535","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"68.327,02"},{"id":"4709536_4709536","clase":"TRIPODE","marca":"BESTON","modelo":"BST-3110A","serie":"4709536","nroInventario":"4709536","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"68.327,02"},{"id":"4709308_3554KC200STJCK","clase":"TRIPODE","marca":"DJI","modelo":"RONIN-SC","serie":"3554KC200STJCK","nroInventario":"4709308","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.050.684,63"},{"id":"4709309_3554KC200STJE9","clase":"TRIPODE","marca":"DJI","modelo":"RONIN-SC","serie":"3554KC200STJE9","nroInventario":"4709309","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"2.050.684,63"},{"id":"4709318_A6448595","clase":"TRIPODE","marca":"MANFROTTO","modelo":"ELEMENT MII","serie":"A6448595","nroInventario":"4709318","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"205.066,8"},{"id":"4709321_A6448676","clase":"TRIPODE","marca":"MANFROTTO","modelo":"ELEMENT MII","serie":"A6448676","nroInventario":"4709321","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"205.066,8"},{"id":"4709319_A6451383","clase":"TRIPODE","marca":"MANFROTTO","modelo":"ELEMENT MII","serie":"A6451383","nroInventario":"4709319","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"205.066,8"},{"id":"4709320_A6451468","clase":"TRIPODE","marca":"MANFROTTO","modelo":"ELEMENT MII","serie":"A6451468","nroInventario":"4709320","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"205.066,8"},{"id":"4709293_4709293","clase":"TRIPODE","marca":"VTA","modelo":"82736","serie":"4709293","nroInventario":"4709293","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"66.537,92"},{"id":"4709294_4709294","clase":"TRIPODE","marca":"VTA","modelo":"82736","serie":"4709294","nroInventario":"4709294","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"66.537,92"},{"id":"4592150_83212004100121","clase":"UPS","marca":"ENERGEX","modelo":"GALLEON X9MT K-1","serie":"83212004100121","nroInventario":"4592150","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"5.117.000"},{"id":"4563947_83212201101388","clase":"UPS","marca":"ENERGEX","modelo":"GALX90200T","serie":"83212201101388","nroInventario":"4563947","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"6.277.250"},{"id":"4703202_231023-97950068","clase":"UPS","marca":"TITAN","modelo":"TITAN DE 2 KVA CON SOPORTE PARA UPS","serie":"231023-97950068","nroInventario":"4703202","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.810.286,89"},{"id":"4703203_231023-97950071","clase":"UPS","marca":"TITAN","modelo":"TITAN DE 2 KVA CON SOPORTE PARA UPS","serie":"231023-97950071","nroInventario":"4703203","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"1.810.286,89"},{"id":"4563823_MXL941405D","clase":"WORKSTATION","marca":"HP","modelo":"WORKSTATION Z8 G4","serie":"MXL941405D","nroInventario":"4563823","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"41.126.400"},{"id":"4563824_MXL941405L","clase":"WORKSTATION","marca":"HP","modelo":"WORKSTATION Z8 G4","serie":"MXL941405L","nroInventario":"4563824","estado":"En Servicio","funcionario":"FIERRO LOSADA JULIAN OSWALDO","costo":"41.126.400"},{"id":"4702862_MJ0LFCP0","clase":"WORKSTATION","marca":"LENOVO","modelo":"THINKSTATION P620","serie":"MJ0LFCP0","nroInventario":"4702862","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"90.514.345,98"},{"id":"4702863_MJ0LFCP1","clase":"WORKSTATION","marca":"LENOVO","modelo":"THINKSTATION P620","serie":"MJ0LFCP1","nroInventario":"4702863","estado":"En Servicio","funcionario":"GUERRERO CAICEDO JEISSON FABIAN","costo":"90.514.345,98"},{"id":"4563859_SMJ0JETCZ","clase":"WORKSTATION","marca":"LENOVO","modelo":"TS P360","serie":"SMJ0JETCZ","nroInventario":"4563859","estado":"En Servicio","funcionario":"PLAZAS BENITEZ EDWAR ALONSO","costo":"19.444.600"},{"id":"4563861_SMJ0JETD1","clase":"WORKSTATION","marca":"LENOVO","modelo":"TS P360","serie":"SMJ0JETD1","nroInventario":"4563861","estado":"En Servicio","funcionario":"GONZALEZ BEJARANO CARLOS ANDRES","costo":"19.444.600"},{"id":"4592151_SMJOJTY4C","clase":"WORKSTATION","marca":"LENOVO","modelo":"TS P620","serie":"SMJOJTY4C","nroInventario":"4592151","estado":"En Servicio","funcionario":"CLAROS ARIAS MANUEL SALVADOR","costo":"149.630.800"}];
+
+const ICONS = {
+  'AUDIFONOS': 'ti-headphones','CAMARA DE VIDEO': 'ti-video','CAMARA DIGITAL': 'ti-camera','CAMARA FOTOGRAFICA': 'ti-camera','COMPUTADOR': 'ti-device-desktop','COMPUTADOR PORTATIL': 'ti-device-laptop','CONSOLA DE SONIDO': 'ti-adjustments','DISCO DURO EXTERNO': 'ti-device-usb','DVD': 'ti-disc','EQUIPO DE GRABACION': 'ti-microphone','ESTABILIZADOR  PORTATIL': 'ti-rotate','EXTENSOR DE AUDIO': 'ti-plug','GRABADORA DE VIDEO': 'ti-device-tv','IMPRESORA': 'ti-printer','INTERFAZ DE COMUNICACION': 'ti-network','KIT DE MICROFONOS': 'ti-microphone','LENTE FOTOGRAFICO': 'ti-zoom-in','LIBRERIA DE BACKUP': 'ti-database','LICENCIA': 'ti-certificate','LICENCIA OFFICE': 'ti-certificate','MEZCLADORA DE AUDIO': 'ti-adjustments','MICROFONO': 'ti-microphone','MICROFONO INALAMBRICO': 'ti-broadcast','MONITOR DE AUDIO': 'ti-volume','PANTALLA LED': 'ti-device-tv','PARLANTE': 'ti-volume','PROCESADOR DE VIDEO': 'ti-cpu','RADIO GRABADORA': 'ti-radio','REFLECTOR': 'ti-bulb','SCANNER': 'ti-scan','SERVIDOR': 'ti-server','SWITCH': 'ti-router','TABLET': 'ti-device-tablet','TABLETA GRAFICA': 'ti-device-tablet','TELEFONO IP': 'ti-phone','TELEPRONTER': 'ti-presentation','TELEVISOR': 'ti-device-tv','TRIPODE': 'ti-camera','UPS': 'ti-battery','WORKSTATION': 'ti-device-desktop'
+};
+
+let state = {};
+ITEMS.forEach(it => { state[it.id] = { check: null, comment: '', photo: null }; });
+
+let activeFilter = 'all';
+let catFilter = '';
+let searchQ = '';
+let modalItemId = null;
+
+function getIcon(clase) { return ICONS[clase] || 'ti-device-floppy'; }
+
+function updateStats() {
+  let pres=0, aus=0, pend=0;
+  ITEMS.forEach(it => {
+    const s = state[it.id];
+    if (s.check === 'presente') pres++;
+    else if (s.check === 'ausente') aus++;
+    else pend++;
+  });
+  document.getElementById('s-total').textContent = ITEMS.length;
+  document.getElementById('s-pres').textContent = pres;
+  document.getElementById('s-aus').textContent = aus;
+  document.getElementById('s-pend').textContent = pend;
+  const rev = pres + aus;
+  document.getElementById('prog-text').textContent = rev + ' / ' + ITEMS.length + ' revisados';
+  document.getElementById('prog-bar').style.width = Math.round(rev/ITEMS.length*100) + '%';
+}
+
+function getFiltered() {
+  return ITEMS.filter(it => {
+    const s = state[it.id];
+    if (activeFilter === 'presente' && s.check !== 'presente') return false;
+    if (activeFilter === 'ausente' && s.check !== 'ausente') return false;
+    if (activeFilter === 'pendiente' && s.check !== null) return false;
+    if (catFilter && it.clase !== catFilter) return false;
+    if (searchQ) {
+      const q = searchQ.toLowerCase();
+      if (!(it.clase.toLowerCase().includes(q) || it.marca.toLowerCase().includes(q) || it.modelo.toLowerCase().includes(q) || it.serie.toLowerCase().includes(q) || it.nroInventario.toLowerCase().includes(q) || it.funcionario.toLowerCase().includes(q))) return false;
+    }
+    return true;
+  });
+}
+
+function renderList() {
+  const area = document.getElementById('list-area');
+  const filtered = getFiltered();
+  if (!filtered.length) { area.innerHTML = '<div class="empty"><i class="ti ti-search-off" style="font-size:28px;display:block;margin-bottom:8px"></i>Sin resultados para esta búsqueda</div>'; return; }
+  area.innerHTML = filtered.map(it => {
+    const s = state[it.id];
+    const cls = s.check === 'presente' ? 'presente' : s.check === 'ausente' ? 'ausente' : s.check === 'pendiente' ? 'pendiente' : '';
+    const ico = getIcon(it.clase);
+    const thumbContent = s.photo ? `<img src="${s.photo}" alt="foto">` : `<i class="ti ${ico}" aria-hidden="true"></i><span class="cam-ico"><i class="ti ti-camera-plus" aria-hidden="true"></i></span>`;
+    return `<div class="item-card ${cls}" id="card-${it.id.replace(/[^a-z0-9]/gi,'_')}">
+      <div class="item-thumb" onclick="openModal('${it.id}')" title="Añadir foto">${thumbContent}</div>
+      <div class="item-info">
+        <div class="item-clase">${it.clase}</div>
+        <div class="item-nombre">${it.marca} ${it.modelo}</div>
+        <div class="item-serie">Serie: ${it.serie} · Inv: ${it.nroInventario}</div>
+      </div>
+      <div class="item-comment-wrap">
+        <textarea placeholder="Observación…" oninput="setComment('${it.id}',this.value)">${s.comment}</textarea>
+      </div>
+      <div class="check-btns">
+        <button class="chk chk-si ${s.check==='presente'?'active':''}" onclick="setCheck('${it.id}','presente')"><i class="ti ti-check" aria-hidden="true"></i> Presente</button>
+        <button class="chk chk-no ${s.check==='ausente'?'active':''}" onclick="setCheck('${it.id}','ausente')"><i class="ti ti-x" aria-hidden="true"></i> Ausente</button>
+        <button class="chk chk-na ${s.check==='pendiente'?'active':''}" onclick="setCheck('${it.id}','pendiente')"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Novedad</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function setCheck(id, val) {
+  state[id].check = state[id].check === val ? null : val;
+  renderList(); updateStats();
+}
+function setComment(id, val) { state[id].comment = val; }
+
+function openModal(id) {
+  modalItemId = id;
+  const s = state[id];
+  const prev = document.getElementById('modal-preview');
+  prev.innerHTML = s.photo ? `<img src="${s.photo}" alt="foto">` : 'Sin foto asignada';
+  const it = ITEMS.find(x => x.id === id);
+  document.querySelector('.modal h3').textContent = it ? it.marca + ' ' + it.modelo : 'Foto';
+  document.getElementById('photo-modal').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('photo-modal').classList.remove('open');
+  modalItemId = null;
+}
+document.getElementById('photo-modal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+document.getElementById('file-input').addEventListener('change', function() {
+  if (!this.files[0] || !modalItemId) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state[modalItemId].photo = e.target.result;
+    document.getElementById('modal-preview').innerHTML = `<img src="${e.target.result}" alt="foto">`;
+    renderList();
+  };
+  reader.readAsDataURL(this.files[0]);
+  this.value = '';
+});
+
+document.getElementById('search').addEventListener('input', function() { searchQ = this.value; renderList(); });
+document.getElementById('cat-filter').addEventListener('change', function() { catFilter = this.value; renderList(); });
+document.querySelectorAll('.fbtn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.fbtn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    activeFilter = this.dataset.f;
+    renderList();
+  });
+});
+
+function exportPDF() {
+  const pres = ITEMS.filter(it => state[it.id].check === 'presente').length;
+  const aus = ITEMS.filter(it => state[it.id].check === 'ausente').length;
+  const pend = ITEMS.filter(it => state[it.id].check === null).length;
+  const nov = ITEMS.filter(it => state[it.id].check === 'pendiente').length;
+  const fecha = new Date().toLocaleDateString('es-CO', {year:'numeric',month:'long',day:'numeric'});
+  
+  let rows = ITEMS.map((it,i) => {
+    const s = state[it.id];
+    const est = s.check === 'presente' ? '✓ PRESENTE' : s.check === 'ausente' ? '✗ AUSENTE' : s.check === 'pendiente' ? '⚠ NOVEDAD' : '— SIN REVISAR';
+    const color = s.check === 'presente' ? '#1a6b3a' : s.check === 'ausente' ? '#8b1a1a' : s.check === 'pendiente' ? '#7a5a00' : '#555';
+    const photoCell = s.photo ? `<td style="padding:5px 8px;text-align:center;"><img src="${s.photo}" style="width:50px;height:40px;object-fit:cover;border-radius:4px;border:0.5px solid #ddd;"></td>` : `<td style="padding:5px 8px;text-align:center;color:#aaa;font-size:11px;">—</td>`;
+    return `<tr style="background:${i%2===0?'#fff':'#f8f8f8'}">
+      <td style="padding:5px 8px;font-size:11px;color:#888">${i+1}</td>
+      <td style="padding:5px 8px;font-size:11px;font-weight:500">${it.clase}</td>
+      <td style="padding:5px 8px;font-size:11px">${it.marca} ${it.modelo}</td>
+      <td style="padding:5px 8px;font-size:10px;font-family:monospace;color:#555">${it.serie}</td>
+      <td style="padding:5px 8px;font-size:11px;font-weight:600;color:${color}">${est}</td>
+      ${photoCell}
+      <td style="padding:5px 8px;font-size:11px;color:#555">${s.comment || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Revista de Inventario — Medios Audiovisuales</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; color: #111; }
+    .header { background: #0a0a0a; color: #fff; padding: 28px 32px 22px; }
+    .header h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; letter-spacing: 0.05em; }
+    .header p { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; }
+    .summary { display: flex; gap: 0; border-bottom: 1px solid #e8e8e8; }
+    .sum-box { flex: 1; padding: 18px 20px; text-align: center; border-right: 1px solid #e8e8e8; }
+    .sum-box:last-child { border-right: none; }
+    .sum-num { font-size: 28px; font-weight: 700; }
+    .sum-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-top: 2px; }
+    .section-title { padding: 16px 24px 8px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888; border-bottom: 0.5px solid #eee; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #f0f0f0; padding: 7px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #555; text-align: left; }
+    .footer { text-align: center; padding: 20px; font-size: 11px; color: #aaa; border-top: 1px solid #eee; margin-top: 20px; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+  </style></head><body>
+  <div class="header">
+    <h1>&#9632; REVISTA DE INVENTARIO</h1>
+    <p>Grupo Medios Audiovisuales · COEST · Generado el ${fecha}</p>
+  </div>
+  <div class="summary">
+    <div class="sum-box"><div class="sum-num">${ITEMS.length}</div><div class="sum-lbl">Total equipos</div></div>
+    <div class="sum-box"><div class="sum-num" style="color:#1a6b3a">${pres}</div><div class="sum-lbl">Presentes</div></div>
+    <div class="sum-box"><div class="sum-num" style="color:#8b1a1a">${aus}</div><div class="sum-lbl">Ausentes</div></div>
+    <div class="sum-box"><div class="sum-num" style="color:#7a5a00">${nov}</div><div class="sum-lbl">Con novedad</div></div>
+    <div class="sum-box"><div class="sum-num" style="color:#aaa">${pend}</div><div class="sum-lbl">Sin revisar</div></div>
+  </div>
+  <div class="section-title">Detalle del inventario</div>
+  <table><thead><tr><th>#</th><th>Clase</th><th>Marca / Modelo</th><th>Serie</th><th>Estado</th><th>Foto</th><th>Observaciones</th></tr></thead><tbody>${rows}</tbody></table>
+  <div class="footer">Documento generado automáticamente · Grupo Medios Audiovisuales · COEST</div>
+  </body></html>`;
+  
+  const blob = new Blob([html], {type:'text/html'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'revista_inventario_medios_' + new Date().toISOString().slice(0,10) + '.html';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+const cats = [...new Set(ITEMS.map(it => it.clase))].sort();
+const sel = document.getElementById('cat-filter');
+cats.forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o); });
+
+document.getElementById('fecha-rev').textContent = new Date().toLocaleDateString('es-CO', {year:'numeric',month:'long',day:'numeric'});
+
+renderList();
+updateStats();
+</script>
